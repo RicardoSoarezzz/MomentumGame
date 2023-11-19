@@ -2,8 +2,8 @@ import java.util.Scanner;
 
 
 public class MomentumGame {
-    private static final int BOARD_SIZE = 7;
-    private static final int WINNING_MARBLES = 8;
+    static final int BOARD_SIZE = 7;
+    static final int WINNING_MARBLES = 8;
 
 
     int moveCounter;
@@ -31,29 +31,67 @@ public class MomentumGame {
 
     public void play() {
         Scanner scanner = new Scanner(System.in);
+        System.out.println("Game Started\n________________");
+        printBoard();
         while (!gameFinish) {
-            printBoard();
-            System.out.println("Player " + currentPlayer.getSymbol() + "'s turn.");
-            System.out.println("Column (1-7) ");
-            int col = scanner.nextInt();
-            System.out.println("Row (1-7) ");
-            int row = scanner.nextInt();
-            if(isValidMove(col,row) && moveCounter<30){
-                moveCounter++;
-                pushMarbles(col, row);
-                if(checkWin()){
-                    System.out.println("Player " + currentPlayer.getSymbol()+" Wins!!");
-                    gameFinish = true;
-                }else{
+            if(currentPlayer==player1){
+
+
+                player1.getBestMove(board);
+                if(isValidMove((player1.getBestMove(board)[0]+1),(player1.getBestMove(board)[1]+1))) {
+                    System.out.println("AI 1 plays: "+(player1.getBestMove(board)[0]+1)+","+(player1.getBestMove(board)[1]+1));
+                    pushMarbles((player1.getBestMove(board)[0]+1), (player1.getBestMove(board)[1]+1));
+                    //moveCounter++;
+                    if(checkWin() || moveCounter ==30){
+                        gameFinish = true;
+                    }
+                    printBoard();
                     changePlayer();
                 }
-            }else if(moveCounter==30){
-                System.out.println("The game is a draw!");
-                gameFinish = true;
-            } else {
-                System.out.println("Invalid move. Please try again.");
-            }
 
+                /* Player Vs AI
+                System.out.println("\nPlayer " + currentPlayer.getSymbol() + "'s turn.");
+                System.out.println("Column (1-7) ");
+                int col = scanner.nextInt();
+                System.out.println("Row (1-7) ");
+                int row = scanner.nextInt();
+                if(isValidMove(col,row)){
+                    moveCounter++;
+                    pushMarbles(col, row);
+                    if(checkWin() || moveCounter ==30){
+                        gameFinish = true;
+                    }
+                    printBoard();
+                    changePlayer();
+
+                }else {
+                    System.out.println("Invalid move. Please try again.");
+                }*/
+            } else {
+
+                player2.getBestMove(board);
+
+
+                if(isValidMove((player2.getBestMove(board)[0]+1),(player2.getBestMove(board)[1]+1))) {
+                    System.out.println("\nAI plays: "+(player2.getBestMove(board)[0]+1)+","+(player2.getBestMove(board)[1]+1));
+                    pushMarbles((player2.getBestMove(board)[0]+1), (player2.getBestMove(board)[1]+1));
+                    //moveCounter++;
+                    if(checkWin() || moveCounter ==30){
+
+                        gameFinish = true;
+                    }
+                    printBoard();
+                    changePlayer();
+                }
+
+            }
+        }
+        System.out.println("________________\nFinal Board\n");
+        printBoard();
+        if(moveCounter==30){
+            System.out.println("\nThe game is a draw!");
+        }else {
+            System.out.println("\nPlayer "+currentPlayer.getSymbol()+" Wins!!");
         }
         System.out.println("Game Ended!");
     }
