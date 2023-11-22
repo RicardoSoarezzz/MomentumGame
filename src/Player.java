@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Player {
-    private static final int MAX_DEPTH = 6;
+    private static final int MAX_DEPTH = 4;
 
     private int marbleCounter;
     private char symbol;

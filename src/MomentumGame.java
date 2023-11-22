@@ -85,13 +85,68 @@ public class MomentumGame {
             return false;
         }
 
-        row = row - 1;
-        col = col - 1;
-
-        return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] == '-';
+        return board[row-1][col-1] == '-';
     }
 
-    private void pushMarbles(int row, int col) {
+    private void pushMarbles(int col, int row) {
+        int newRow = row - 1;
+        int newCol = col - 1;
+
+        newBoard = new char[BOARD_SIZE][BOARD_SIZE];
+        char temp = currentPlayer.getSymbol();
+
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            System.arraycopy(board[i], 0, newBoard[i], 0, BOARD_SIZE);
+        }
+
+        boolean[][] visited = new boolean[BOARD_SIZE][BOARD_SIZE];
+        visited[newRow][newCol] = true;
+
+        newBoard[newRow][newCol] = temp;
+
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) {
+                }
+                else if((newRow+i)<BOARD_SIZE && (newRow +i) >= 0 && (newCol+j) >=0 && (newCol+j) <BOARD_SIZE) {
+                    if(board[newRow+i][newCol+j]!='-'){
+                        pushMarblesInDirection(newRow, newCol, i, j, visited);
+                    }
+                }
+            }
+        }
+
+        board = newBoard;
+    }
+
+    private void pushMarblesInDirection(int row, int col, int rowDirection, int colDirection, boolean[][] visited) {
+        int emptyRow = 0;
+        int emptyCol = 0;
+        int currentRow = 0;
+        int currentCol = 0;
+        for (int k = 1; k <= 6; k++) {
+            currentRow = row + rowDirection * k;
+            currentCol = col + colDirection * k;
+
+
+            if (currentRow >= 0 && currentRow < BOARD_SIZE && currentCol >= 0 && currentCol < BOARD_SIZE && !visited[currentRow][currentCol]) {
+                if(board[currentRow][currentCol]=='-'){
+                    emptyRow = currentRow;
+                    emptyCol = currentCol;
+                    break;
+                }
+            }
+        }
+        if (emptyRow ==0){
+            if (emptyRow - rowDirection != row || emptyCol - colDirection != col) {
+                newBoard[emptyRow - rowDirection][emptyCol - colDirection] = '-';
+                newBoard[emptyRow][emptyCol] = board[emptyRow - rowDirection][emptyCol - colDirection];
+                visited[currentRow][currentCol] = true;
+            }
+        }
+    }
+
+    /*private void pushMarbles(int row, int col) {
         row = row - 1;
         col = col - 1;
 
@@ -131,7 +186,7 @@ public class MomentumGame {
 
         board = newBoard;
         moveCounter++;
-    }
+    }*/
 
     private boolean checkWin() {
         int counter = 0;
@@ -165,8 +220,10 @@ public class MomentumGame {
             for (int j = 0; j < BOARD_SIZE; j++) {
                 System.out.print(board[i][j] + " ");
             }
+            System.out.print(rowCount);
             System.out.println();
         }
+        System.out.println("  1 2 3 4 5 6 7");
     }
 
     public char[][] getBoard() {
