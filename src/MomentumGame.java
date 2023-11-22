@@ -1,17 +1,15 @@
 import java.util.Scanner;
 
-
 public class MomentumGame {
     static final int BOARD_SIZE = 7;
     static final int WINNING_MARBLES = 8;
-
 
     int moveCounter;
     private char[][] board;
     char[][] newBoard;
 
     boolean gameFinish;
-    Player player1,player2,currentPlayer;
+    Player player1, player2, currentPlayer;
 
     public static void main(String[] args) {
         MomentumGame game = new MomentumGame();
@@ -34,64 +32,42 @@ public class MomentumGame {
         System.out.println("Game Started\n________________");
         printBoard();
         while (!gameFinish) {
-            if(currentPlayer==player1){
-
-
+            if (currentPlayer == player1) {
                 player1.getBestMove(board);
-                if(isValidMove((player1.getBestMove(board)[0]+1),(player1.getBestMove(board)[1]+1))) {
-                    System.out.println("AI 1 plays: "+(player1.getBestMove(board)[0]+1)+","+(player1.getBestMove(board)[1]+1));
-                    pushMarbles((player1.getBestMove(board)[0]+1), (player1.getBestMove(board)[1]+1));
-                    //moveCounter++;
-                    if(checkWin() || moveCounter ==30){
+                Action bestMove = player1.getBestMove(board);
+
+                if (isValidMove(bestMove.getRow() + 1, bestMove.getCol() + 1)) {
+                    System.out.println("AI 1 plays: " + (bestMove.getRow() + 1) + "," + (bestMove.getCol() + 1));
+                    pushMarbles(bestMove.getRow() + 1, bestMove.getCol() + 1);
+
+                    if (checkWin() || moveCounter == 30) {
                         gameFinish = true;
                     }
                     printBoard();
                     changePlayer();
                 }
-
-                /* Player Vs AI
-                System.out.println("\nPlayer " + currentPlayer.getSymbol() + "'s turn.");
-                System.out.println("Column (1-7) ");
-                int col = scanner.nextInt();
-                System.out.println("Row (1-7) ");
-                int row = scanner.nextInt();
-                if(isValidMove(col,row)){
-                    moveCounter++;
-                    pushMarbles(col, row);
-                    if(checkWin() || moveCounter ==30){
-                        gameFinish = true;
-                    }
-                    printBoard();
-                    changePlayer();
-
-                }else {
-                    System.out.println("Invalid move. Please try again.");
-                }*/
             } else {
-
                 player2.getBestMove(board);
+                Action bestMove = player2.getBestMove(board);
 
+                if (isValidMove(bestMove.getRow() + 1, bestMove.getCol() + 1)) {
+                    System.out.println("\nAI plays: " + (bestMove.getRow() + 1) + "," + (bestMove.getCol() + 1));
+                    pushMarbles(bestMove.getRow() + 1, bestMove.getCol() + 1);
 
-                if(isValidMove((player2.getBestMove(board)[0]+1),(player2.getBestMove(board)[1]+1))) {
-                    System.out.println("\nAI plays: "+(player2.getBestMove(board)[0]+1)+","+(player2.getBestMove(board)[1]+1));
-                    pushMarbles((player2.getBestMove(board)[0]+1), (player2.getBestMove(board)[1]+1));
-                    //moveCounter++;
-                    if(checkWin() || moveCounter ==30){
-
+                    if (checkWin() || moveCounter == 30) {
                         gameFinish = true;
                     }
                     printBoard();
                     changePlayer();
                 }
-
             }
         }
         System.out.println("________________\nFinal Board\n");
         printBoard();
-        if(moveCounter==30){
+        if (moveCounter == 30) {
             System.out.println("\nThe game is a draw!");
-        }else {
-            System.out.println("\nPlayer "+currentPlayer.getSymbol()+" Wins!!");
+        } else {
+            System.out.println("\nPlayer " + currentPlayer.getSymbol() + " Wins!!");
         }
         System.out.println("Game Ended!");
     }
@@ -102,28 +78,22 @@ public class MomentumGame {
         } else {
             currentPlayer = player1;
         }
-
     }
 
-    private boolean isValidMove(int col, int row) {
-        if(col <1 || row < 1|| col> 7 || row >7){
+    private boolean isValidMove(int row, int col) {
+        if (row < 1 || col < 1 || row > BOARD_SIZE || col > BOARD_SIZE) {
             return false;
         }
 
-        col = col-1;
-        row = row-1;
-        if(col >= 0 && col < BOARD_SIZE && row >= 0 && row < BOARD_SIZE && board[row][col] == '-'){
-            return true;
-        }
+        row = row - 1;
+        col = col - 1;
 
-
-        return false;
-
+        return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] == '-';
     }
 
-    private void pushMarbles(int col, int row) {
-        col = col - 1;
+    private void pushMarbles(int row, int col) {
         row = row - 1;
+        col = col - 1;
 
         newBoard = new char[BOARD_SIZE][BOARD_SIZE];
         char temp = currentPlayer.getSymbol();
@@ -132,7 +102,6 @@ public class MomentumGame {
             System.arraycopy(board[i], 0, newBoard[i], 0, BOARD_SIZE);
         }
 
-        // Mark the center as visited to avoid pushing marbles back to the center
         boolean[][] visited = new boolean[BOARD_SIZE][BOARD_SIZE];
         visited[row][col] = true;
 
@@ -150,7 +119,6 @@ public class MomentumGame {
                         if (k == 1) {
                             newBoard[currentRow][currentCol] = '-';
                         } else {
-                            // Check if the marble being pushed is not the newly placed one
                             if (currentRow - i != row || currentCol - j != col) {
                                 newBoard[currentRow][currentCol] = board[currentRow - i][currentCol - j];
                                 visited[currentRow][currentCol] = true;
@@ -162,31 +130,25 @@ public class MomentumGame {
         }
 
         board = newBoard;
+        moveCounter++;
     }
 
-
     private boolean checkWin() {
-
         int counter = 0;
         for (int i = 0; i < BOARD_SIZE; i++) {
-
             for (int j = 0; j < BOARD_SIZE; j++) {
-                if(board[i][j]==currentPlayer.getSymbol()){
+                if (board[i][j] == currentPlayer.getSymbol()) {
                     counter++;
                 }
             }
-
         }
+
         currentPlayer.setMarbleCounter(counter);
 
-        if(currentPlayer.getMarbleCounter()==WINNING_MARBLES){
-            return true;
-        }
-
-        return false;
+        return currentPlayer.getMarbleCounter() == WINNING_MARBLES;
     }
 
-    private void initializeBoard(char[][]newBoard) {
+    private void initializeBoard(char[][] newBoard) {
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
                 newBoard[i][j] = '-';
@@ -198,18 +160,14 @@ public class MomentumGame {
         int rowCount = 0;
         System.out.println("  1 2 3 4 5 6 7");
         for (int i = 0; i < BOARD_SIZE; i++) {
-
             rowCount++;
-            System.out.print(rowCount+" ");
+            System.out.print(rowCount + " ");
             for (int j = 0; j < BOARD_SIZE; j++) {
                 System.out.print(board[i][j] + " ");
             }
             System.out.println();
         }
     }
-
-
-
 
     public char[][] getBoard() {
         return board;
@@ -218,8 +176,4 @@ public class MomentumGame {
     public void setBoard(char[][] board) {
         this.board = board;
     }
-
-
 }
-
-

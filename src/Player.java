@@ -2,8 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Player {
-
-    private static final int MAX_DEPTH = 4;
+    private static final int MAX_DEPTH = 6;
 
     private int marbleCounter;
     private char symbol;
@@ -16,70 +15,66 @@ class Player {
     int aiCount;
     int opponentCount;
 
-    public int[] getBestMove(char[][] board) {
-        int[] bestMove;
+    public Action getBestMove(char[][] board) {
+        Node bestNode;
 
         do {
-            bestMove = minimax(board, MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
-        } while (!isValidMove(board, bestMove[1], bestMove[2]));
+            bestNode = minimax(new Node(board, 0, null), MAX_DEPTH, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
+        } while (!isValidMove(board, bestNode.getAction().getRow(), bestNode.getAction().getCol()));
 
-        return new int[]{bestMove[1], bestMove[2]};
+        return bestNode.getAction();
     }
 
-    private boolean isValidMove(char[][] board, int col, int row) {
-        return col >= 0 && row >= 0 && col < MomentumGame.BOARD_SIZE && row < MomentumGame.BOARD_SIZE && board[row][col] == '-';
+    private boolean isValidMove(char[][] board, int row, int col) {
+        return row >= 0 && col >= 0 && row < MomentumGame.BOARD_SIZE && col < MomentumGame.BOARD_SIZE && board[row][col] == '-';
     }
 
-    private int[] minimax(char[][] board, int depth, int alpha, int beta, boolean maximizingPlayer) {
-        List<int[]> possibleMoves = getEmptyCells(board);
+    private Node minimax(Node node, int depth, int alpha, int beta, boolean maximizingPlayer) {
+        List<Action> possibleMoves = getEmptyCells(node.getBoard());
         if (possibleMoves.size() == MomentumGame.BOARD_SIZE * MomentumGame.BOARD_SIZE) {
-            return new int[]{1, 3, 3}; // Starting move if the board is empty
+            return new Node(node.getBoard(), 1, new Action(3, 3));
         }
 
         if (depth == 0 || possibleMoves.isEmpty()) {
-            int evaluation = evaluateBoard(board);
-            return new int[]{evaluation, -1, -1};
+            int evaluation = evaluateBoard(node.getBoard());
+            return new Node(node.getBoard(), evaluation, null);
         }
 
-        int[] bestMove = maximizingPlayer ? new int[]{Integer.MIN_VALUE, -1, -1} : new int[]{Integer.MAX_VALUE, -1, -1};
+        Node bestNode = maximizingPlayer ? new Node(node.getBoard(), Integer.MIN_VALUE, null) : new Node(node.getBoard(), Integer.MAX_VALUE, null);
 
-        // Sort moves based on the evaluation to improve alpha-beta pruning
+
         possibleMoves.sort((m1, m2) -> {
-            board[m1[0]][m1[1]] = maximizingPlayer ? 'O' : 'X';
-            int eval1 = evaluateBoard(board);
-            board[m1[0]][m1[1]] = '-';
+            node.getBoard()[m1.getRow()][m1.getCol()] = maximizingPlayer ? 'O' : 'X';
+            int eval1 = evaluateBoard(node.getBoard());
+            node.getBoard()[m1.getRow()][m1.getCol()] = '-';
 
-            board[m2[0]][m2[1]] = maximizingPlayer ? 'O' : 'X';
-            int eval2 = evaluateBoard(board);
-            board[m2[0]][m2[1]] = '-';
+            node.getBoard()[m2.getRow()][m2.getCol()] = maximizingPlayer ? 'O' : 'X';
+            int eval2 = evaluateBoard(node.getBoard());
+            node.getBoard()[m2.getRow()][m2.getCol()] = '-';
 
             return maximizingPlayer ? Integer.compare(eval2, eval1) : Integer.compare(eval1, eval2);
         });
 
-        for (int[] move : possibleMoves) {
-            int row = move[0];
-            int col = move[1];
+        for (Action move : possibleMoves) {
+            int row = move.getRow();
+            int col = move.getCol();
 
-            char originalValue = board[row][col];
-            board[row][col] = maximizingPlayer ? 'O' : 'X';
+            char originalValue = node.getBoard()[row][col];
+            node.getBoard()[row][col] = maximizingPlayer ? 'O' : 'X';
 
-            int[] currentMove = minimax(board, depth - 1, alpha, beta, !maximizingPlayer);
-
-            board[row][col] = originalValue;
-
-            currentMove[1] = col;
-            currentMove[2] = row;
+            Node childNode = minimax(new Node(node.getBoard(), 0, null), depth - 1, alpha, beta, !maximizingPlayer);
+            node.getBoard()[row][col] = originalValue;
 
             if (maximizingPlayer) {
-                if (currentMove[0] > bestMove[0]) {
-                    bestMove = currentMove;
+                if (childNode.getScore() > bestNode.getScore()) {
+                    bestNode = new Node(node.getBoard(), childNode.getScore(), move);
                 }
-                alpha = Math.max(alpha, bestMove[0]);
+                alpha = Math.max(alpha, bestNode.getScore());
             } else {
-                if (currentMove[0] < bestMove[0]) {
-                    bestMove = currentMove;
+                if (childNode.getScore() < bestNode.getScore()) {
+                    bestNode = new Node(node.getBoard(), childNode.getScore(), move);
                 }
-                beta = Math.min(beta, bestMove[0]);
+                beta = Math.min(beta, bestNode.getScore());
             }
 
             if (beta <= alpha) {
@@ -87,15 +82,15 @@ class Player {
             }
         }
 
-        return bestMove;
+        return bestNode;
     }
 
-    private List<int[]> getEmptyCells(char[][] board) {
-        List<int[]> emptyCells = new ArrayList<>();
+    private List<Action> getEmptyCells(char[][] board) {
+        List<Action> emptyCells = new ArrayList<>();
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 if (board[i][j] == '-') {
-                    emptyCells.add(new int[]{i, j});
+                    emptyCells.add(new Action(i, j));
                 }
             }
         }
@@ -105,10 +100,10 @@ class Player {
     private int evaluateBoard(char[][] board) {
         int score = 0;
 
-        // Evaluate rows, columns, and diagonals
+
         for (int i = 0; i < MomentumGame.BOARD_SIZE; i++) {
-            score += evaluateLine(board[i]); // Evaluate row
-            score += evaluateLine(getColumn(board, i)); // Evaluate column
+            score += evaluateLine(board[i]);
+            score += evaluateLine(getColumn(board, i));
         }
 
         char[] diagonal1 = new char[MomentumGame.BOARD_SIZE];
@@ -117,8 +112,8 @@ class Player {
             diagonal1[i] = board[i][i];
             diagonal2[i] = board[i][MomentumGame.BOARD_SIZE - 1 - i];
         }
-        score += evaluateLine(diagonal1); // Evaluate diagonal
-        score += evaluateLine(diagonal2); // Evaluate diagonal
+        score += evaluateLine(diagonal1);
+        score += evaluateLine(diagonal2);
 
         return score;
     }
@@ -146,22 +141,21 @@ class Player {
                 opponentCount++;
             }
 
-            // Check for potential winning configuration in all directions
-            // Penalize moves closer to the border
+
             if (aiCount > 0 && opponentCount == 0 && i + 1 < line.length && line[i + 1] == '-') {
-                return 100 - Math.abs(i - line.length / 2); // Adjust the penalty based on the distance from the center
+                return 100 - Math.abs(i - line.length / 2);
             }
 
-            // Add more criteria based on the current position
+
             if (i == 0 && cell == '-') {
-                score += 10; // Favor moves closer to the beginning of the line
+                score += 10;
                 if (isNearBorder(i)) {
-                    score -= 5; // Penalize moves near the border
+                    score -= 5;
                 }
             } else if (i == line.length - 1 && cell == '-') {
-                score += 10; // Favor moves closer to the end of the line
+                score += 10;
                 if (isNearBorder(i)) {
-                    score -= 5; // Penalize moves near the border
+                    score -= 5;
                 }
             }
         }
@@ -170,7 +164,7 @@ class Player {
     }
 
     private boolean isNearBorder(int position) {
-        int borderThreshold = 2; // Adjust this threshold based on your preference
+        int borderThreshold = 2;
         return position < borderThreshold || position >= MomentumGame.BOARD_SIZE - borderThreshold;
     }
 
