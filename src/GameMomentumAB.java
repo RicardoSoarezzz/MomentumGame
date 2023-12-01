@@ -50,18 +50,6 @@ public class GameMomentumAB extends NodeGameAB {
         return h;
     }
 
-    private int[][] makeCopy(int[][] p) {
-        int[][] np = new int[7][7];
-
-        for(int l = 0; l < 7; ++l) {
-            for(int c = 0; c < 7; ++c) {
-                np[l][c] = p[l][c];
-            }
-        }
-
-        return np;
-    }
-
     public void setMyColor(int color) {
         this.myColor = color;
     }
@@ -81,16 +69,4 @@ public class GameMomentumAB extends NodeGameAB {
         return st;
     }
 
-    public static void main(String[] args) {
-        GameMomentumAB jogo = new GameMomentumAB("0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ");
-        jogo.setMyColor(1);
-        ArrayList<Move> suc = jogo.expandAB();
-        Iterator var4 = suc.iterator();
-
-        while(var4.hasNext()) {
-            Move j = (Move)var4.next();
-            System.out.println(j);
-        }
-
-    }
 }

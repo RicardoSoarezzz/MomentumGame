@@ -16,7 +16,6 @@ public class Move {
     }
 
     public String toString() {
-        String var10000 = this.action;
-        return "Move: " + var10000 + "\n" + this.node.toString();
+        return action;
     }
 }

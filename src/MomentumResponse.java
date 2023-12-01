@@ -64,7 +64,7 @@ public class MomentumResponse implements Runnable {
         jend.addActionListener( new ActionListener( ) {
             public void actionPerformed(ActionEvent e) {
                 int res = confirmExit();
-                if (res == JOptionPane.YES_OPTION) { // confirmado ?
+                if (res == JOptionPane.YES_OPTION) {
                     System.exit( 0);
                 }
             }
@@ -121,8 +121,8 @@ public class MomentumResponse implements Runnable {
                     GameMomentumAB initial = new GameMomentumAB(st);
                     String res = initial.processAB(this.jc);
                     this.jt.setText(res);
-                    System.out.println(initial.toString());
-                    String str = this.jt.getText().trim();  // Remove extra space at the start and end
+                    System.out.println(initial);
+                    String str = this.jt.getText().trim();
 
                     try {
                         this.out.write(str + "\n");
@@ -132,8 +132,8 @@ public class MomentumResponse implements Runnable {
                         System.exit(0);
                     }
 
+                    System.out.println("Sent move:" + str);
 
-                    System.out.println("Sent move: " + str);
                     this.jt.setBackground(Color.white);
                     this.jt.setEnabled(false);
                 }
